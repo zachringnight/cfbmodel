@@ -4,7 +4,12 @@ Data preprocessing and feature engineering for CFB model
 
 import pandas as pd
 import numpy as np
+import logging
 from typing import Tuple
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class CFBPreprocessor:
@@ -26,7 +31,17 @@ class CFBPreprocessor:
             
         Returns:
             DataFrame with engineered features for modeling
+            
+        Raises:
+            ValueError: If invalid input data is provided
         """
+        if games_df.empty:
+            raise ValueError("games_df cannot be empty")
+        if team_stats_df.empty:
+            raise ValueError("team_stats_df cannot be empty")
+        
+        logger.info(f"Preparing features for {len(games_df)} games")
+        
         # Create a copy to avoid modifying original
         features = games_df.copy()
         
@@ -35,11 +50,14 @@ class CFBPreprocessor:
         stats_dict = {}
         if 'statName' in team_stats_df.columns and 'statValue' in team_stats_df.columns:
             # Pivot the stats data
+            logger.info("Pivoting team statistics from long to wide format")
             for team_name in team_stats_df['team'].unique():
                 team_data = team_stats_df[team_stats_df['team'] == team_name]
                 stats_dict[team_name] = dict(zip(team_data['statName'], team_data['statValue']))
+            logger.info(f"Processed stats for {len(stats_dict)} teams")
         else:
             # Legacy format - stats are already in wide format
+            logger.info("Processing team statistics in wide format")
             for _, row in team_stats_df.iterrows():
                 team = row.get('team', row.get('school', ''))
                 if team:
@@ -48,10 +66,13 @@ class CFBPreprocessor:
         # Create talent lookup if available
         talent_dict = {}
         if talent_df is not None and not talent_df.empty:
+            logger.info(f"Processing talent ratings for {len(talent_df)} teams")
             for _, row in talent_df.iterrows():
                 team = row.get('school', '')
                 if team:
                     talent_dict[team] = row.get('talent', 0)
+        else:
+            logger.info("No talent ratings provided")
         
         # Add features for home and away teams
         home_features = []
