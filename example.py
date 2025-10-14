@@ -2,12 +2,15 @@
 Example script demonstrating how to use the CFB model
 """
 
+import os
 from data_fetcher import CFBDataFetcher
 from preprocessor import CFBPreprocessor
 from model import CFBModel
 
 # Example 1: Initialize with your API key
-API_KEY = "OvDDxP6B6eSjqOGQYXQ5H6iQ57tzKnYhGgoKmOwuV/fwlIpSp9ssZtHH4OJK7b09"
+API_KEY = os.environ.get("CFB_API_KEY")
+if not API_KEY:
+    raise RuntimeError("Please set the CFB_API_KEY environment variable with your API key.")
 fetcher = CFBDataFetcher(API_KEY)
 
 # Example 2: Fetch data for a season
