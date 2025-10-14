@@ -31,11 +31,19 @@ class CFBPreprocessor:
         features = games_df.copy()
         
         # Convert team stats to dict for easy lookup
+        # Stats come in long format (statName, statValue), need to pivot
         stats_dict = {}
-        for _, row in team_stats_df.iterrows():
-            team = row.get('team', row.get('school', ''))
-            if team:
-                stats_dict[team] = row.to_dict()
+        if 'statName' in team_stats_df.columns and 'statValue' in team_stats_df.columns:
+            # Pivot the stats data
+            for team_name in team_stats_df['team'].unique():
+                team_data = team_stats_df[team_stats_df['team'] == team_name]
+                stats_dict[team_name] = dict(zip(team_data['statName'], team_data['statValue']))
+        else:
+            # Legacy format - stats are already in wide format
+            for _, row in team_stats_df.iterrows():
+                team = row.get('team', row.get('school', ''))
+                if team:
+                    stats_dict[team] = row.to_dict()
         
         # Create talent lookup if available
         talent_dict = {}
@@ -50,8 +58,9 @@ class CFBPreprocessor:
         away_features = []
         
         for _, game in features.iterrows():
-            home_team = game.get('home_team', '')
-            away_team = game.get('away_team', '')
+            # Handle both snake_case and camelCase column names
+            home_team = game.get('homeTeam', game.get('home_team', ''))
+            away_team = game.get('awayTeam', game.get('away_team', ''))
             
             # Get stats for home team
             home_stats = stats_dict.get(home_team, {})
@@ -62,7 +71,7 @@ class CFBPreprocessor:
                 'home_off_total_yards': home_stats.get('totalYards', 0),
                 'home_off_passing_yards': home_stats.get('netPassingYards', 0),
                 'home_off_rushing_yards': home_stats.get('rushingYards', 0),
-                'home_off_points': home_stats.get('points', 0),
+                'home_off_points': home_stats.get('points', 0),  # Will be 0 as points not in stats
                 'home_talent': talent_dict.get(home_team, 0)
             }
             
@@ -70,7 +79,7 @@ class CFBPreprocessor:
                 'away_off_total_yards': away_stats.get('totalYards', 0),
                 'away_off_passing_yards': away_stats.get('netPassingYards', 0),
                 'away_off_rushing_yards': away_stats.get('rushingYards', 0),
-                'away_off_points': away_stats.get('points', 0),
+                'away_off_points': away_stats.get('points', 0),  # Will be 0 as points not in stats
                 'away_talent': talent_dict.get(away_team, 0)
             }
             
@@ -116,8 +125,12 @@ class CFBPreprocessor:
         X = features_df[available_cols].fillna(0)
         
         # Create target variable (home team win = 1, loss = 0)
-        if 'home_points' in features_df.columns and 'away_points' in features_df.columns:
-            y = (features_df['home_points'] > features_df['away_points']).astype(int)
+        # Handle both snake_case and camelCase column names
+        home_points_col = 'homePoints' if 'homePoints' in features_df.columns else 'home_points'
+        away_points_col = 'awayPoints' if 'awayPoints' in features_df.columns else 'away_points'
+        
+        if home_points_col in features_df.columns and away_points_col in features_df.columns:
+            y = (features_df[home_points_col] > features_df[away_points_col]).astype(int)
         else:
             y = pd.Series([0] * len(features_df))
         

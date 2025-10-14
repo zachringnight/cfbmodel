@@ -120,8 +120,8 @@ def main():
         # Display predictions
         print("\n=== Predictions ===")
         for i, (_, game) in enumerate(games.iterrows()):
-            home = game.get('home_team', 'Unknown')
-            away = game.get('away_team', 'Unknown')
+            home = game.get('homeTeam', game.get('home_team', 'Unknown'))
+            away = game.get('awayTeam', game.get('away_team', 'Unknown'))
             pred = "Home Win" if predictions[i] == 1 else "Away Win"
             prob = probabilities[i][predictions[i]]
             
