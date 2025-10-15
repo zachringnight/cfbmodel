@@ -37,7 +37,7 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "cfbmodel=main:main",
+            "cfbmodel=cfbmodel.main:main",
         ],
     },
     include_package_data=True,
