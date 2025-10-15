@@ -9,11 +9,12 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 # Inline install_requires instead of reading requirements.txt
 requirements = [
-    # Add your requirements here, e.g.:
-    "numpy>=1.21.0",
-    "scikit-learn>=0.24.0",
-    "pandas>=1.3.0",
-    # ... add other requirements as needed
+    "requests>=2.31.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "urllib3>=2.0.0",
+    "pytest>=7.4.0",
 ]
 
 setup(
@@ -24,7 +25,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/zachringnight/cfbmodel",
-    packages=find_packages(include=['cfbmodel*']),
+    py_modules=['__init__', 'main', 'model', 'preprocessor', 'data_fetcher', 'config'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -43,7 +44,7 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "cfbmodel=cfbmodel.main:main",
+            "cfbmodel=main:main",
         ],
     },
     include_package_data=True,
