@@ -18,7 +18,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/zachringnight/cfbmodel",
-    packages=find_packages(),
+    packages=find_packages(include=['cfbmodel*']),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
