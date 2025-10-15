@@ -20,6 +20,8 @@ A production-ready machine learning model for predicting college football game o
 
 ## Installation
 
+### Option 1: Direct Installation
+
 1. Clone this repository:
 ```bash
 git clone https://github.com/zachringnight/cfbmodel.git
@@ -37,14 +39,34 @@ cp .env.example .env
 # Edit .env and add your API key
 ```
 
+### Option 2: Package Installation
+
+Install as a Python package:
+```bash
+git clone https://github.com/zachringnight/cfbmodel.git
+cd cfbmodel
+pip install -e .
+```
+
+This will install the package in development mode and make the `cfbmodel` command available in your terminal.
+
 ## Usage
+
+The model can be used either by running the main script directly or through the installed package.
 
 ### Training a Model
 
 Train a model using data from a specific season:
 
 ```bash
+# Using the script directly
 python main.py --api-key YOUR_API_KEY --year 2023 --train
+
+# Or if installed as a package
+cfbmodel --api-key YOUR_API_KEY --year 2023 --train
+
+# Or with executable permission
+./main.py --api-key YOUR_API_KEY --year 2023 --train
 ```
 
 This will:
