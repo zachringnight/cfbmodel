@@ -1,211 +1,44 @@
-# Column Descriptions for `training_data.csv`
-
-### `id`
-Description: Unique identifier for the game
-
-### `start_date`
-Description: Start Date for the game
-
-### `season`
-Description: Season year
-
-### `season_type`
-Description: Season type - regular or postseason
-
-### `week`
-Description: Week number of the season
-
-### `neutral_site`
-Description: True if the game was played at a neutral site
-
-### `home_team`
-Description: Name of the home team
-
-### `home_conference`
-Description: Home team conference
-
-### `home_elo`
-Description: Pre-game Elo rating for the home team
-
-### `home_talent`
-Description: Talent composite score for the home team
-
-### `away_team`
-Description: Name of the away team
-
-### `away_conference`
-Description: Away team conference
-
-### `away_talent`
-Description: Talent composite score for the away team
-
-### `away_elo`
-Description: Pre-game Elo rating for the away team
-
-### `home_points`
-Description: Final points for the home team
-
-### `away_points`
-Description: Final points for the away team
-
-### `margin`
-Description: Final score margin (away - home)
-
-### `spread`
-Description: Vegas spread (negative means home team is favored)
-
-### `adjusted_rushing_epa_home`
-Description: Home team's offensive opponent-adjusted rushing EPA per play
-
-### `adjusted_rushing_epa_allowed_home`
-Description: Home team's defensive opponent-adjusted rushing EPA per play
-
-### `adjusted_rushing_epa_away`
-Description: Away team's offensive opponent-adjusted rushing EPA per play
-
-### `adjusted_rushing_epa_allowed_away`
-Description: Away team's defensive opponent-adjusted rushing EPA per play
-
-### `adjusted_passing_epa_home`
-Description: Home team's offensive opponent-adjusted passing EPA per play
-
-### `adjusted_passing_epa_allowed_home`
-Description: Home team's defensive opponent-adjusted passing EPA per play
-
-### `adjusted_passing_epa_away`
-Description: Away team's offensive opponent-adjusted passing EPA per play
-
-### `adjusted_passing_epa_allowed_away`
-Description: Away team's defensive opponent-adjusted passing EPA per play
-
-### `adjusted_standard_down_success_home`
-Description: Home team's offensive opponent-adjusted standard down success rate
-
-### `adjusted_standard_down_success_allowed_home`
-Description: Home team's defensive opponent-adjusted standard down success rate
-
-### `adjusted_standard_down_success_away`
-Description: Away team's offensive opponent-adjusted standard down success rate
-
-### `adjusted_standard_down_success_allowed_away`
-Description: Away team's defensive opponent-adjusted standard down success rate
-
-### `adjusted_passing_down_success_home`
-Description: Home team's offensive opponent-adjusted passing down success rate
-
-### `adjusted_passing_down_success_allowed_home`
-Description: Home team's defensive opponent-adjusted passing down success rate
-
-### `adjusted_passing_down_success_away`
-Description: Away team's offensive opponent-adjusted passing down success rate
-
-### `adjusted_passing_down_success_allowed_away`
-Description: Away team's defensive opponent-adjusted passing down success rate
-
-### `adjusted_line_yards_home`
-Description: Home team's offensive opponent-adjusted line yards per carry
-
-### `adjusted_line_yards_allowed_home`
-Description: Home team's defensive opponent-adjusted line yards per carry
-
-### `adjusted_line_yards_away`
-Description: Away team's offensive opponent-adjusted line yards per carry
-
-### `adjusted_line_yards_allowed_away`
-Description: Away team's defensive opponent-adjusted line yards per carry
-
-### `adjusted_second_level_yards_home`
-Description: Home team's offensive opponent-adjusted second-level yards per carry
-
-### `adjusted_second_level_yards_allowed_home`
-Description: Home team's defensive opponent-adjusted second-level yards per carry
-
-### `adjusted_second_level_yards_away`
-Description: Away team's offensive opponent-adjusted second-level yards per carry
-
-### `adjusted_second_level_yards_allowed_away`
-Description: Away team's defensive opponent-adjusted second-level yards per carry
-
-### `adjusted_open_field_yards_home`
-Description: Home team's offensive opponent-adjusted open field yards per carry
-
-### `adjusted_open_field_yards_allowed_home`
-Description: Home team's defensive opponent-adjusted open field yards per carry
-
-### `adjusted_open_field_yards_away`
-Description: Away team's offensive opponent-adjusted open field yards per carry
-
-### `adjusted_open_field_yards_allowed_away`
-Description: Away team's defensive opponent-adjusted open field yards per carry
-
-### `adjusted_explosiveness_home`
-Description: Home team's offensive opponent-adjusted explosiveness (EPA per successful play)
-
-### `adjusted_explosiveness_allowed_home`
-Description: Home team's defensive opponent-adjusted explosiveness (EPA per successful play)
-
-### `adjusted_explosiveness_away`
-Description: Away team's offensive opponent-adjusted explosiveness (EPA per successful play)
-
-### `adjusted_explosiveness_allowed_away`
-Description: Away team's defensive opponent-adjusted explosiveness (EPA per successful play)
-
-### `total_havoc_offense_home`
-Description: Home team's offensive havoc rate allowed (disruptive plays like TFLs, PBUs, INTs, FFs)
-
-### `front_seven_havoc_offense_home`
-Description: Home team's front seven offensive havoc rate allowed (disruptive plays like TFLs and FFs)
-
-### `db_havoc_offense_home`
-Description: Home team's offensive DB havoc rate allowed (disruptive plays like PBUs and INTs)
-
-### `total_havoc_offense_away`
-Description: Away team's offensive havoc rate allowed (disruptive plays like TFLs, PBUs, INTs, FFs)
-
-### `front_seven_havoc_offense_away`
-Description: Away team's front seven offensive havoc rate allowed (disruptive plays like TFLs and FFs)
-
-### `db_havoc_offense_away`
-Description: Away team's offensive DB havoc rate allowed (disruptive plays like PBUs and INTs)
-
-### `total_havoc_defense_home`
-Description: Home team's defensive havoc rate (disruptive plays like TFLs, PBUs, INTs, FFs)
-
-### `front_seven_havoc_defense_home`
-Description: Home team's front seven defensive havoc rate (disruptive plays like TFLs and FFs)
-
-### `db_havoc_defense_home`
-Description: Home team's defensive DB havoc rate (disruptive plays like PBUs and INTs)
-
-### `total_havoc_defense_away`
-Description: Away team's defensive havoc rate (disruptive plays like TFLs, PBUs, INTs, FFs)
-
-### `front_seven_havoc_defense_away`
-Description: Away team's front seven defensive havoc rate (disruptive plays like TFLs and FFs)
-
-### `db_havoc_defense_away`
-Description: Away team's defensive DB havoc rate (disruptive plays like PBUs and INTs)
-
-### `points_per_opportunity_offense_home`
-Description: Home team's offensive points per scoring opportunity (drives inside opponent 40)
-
-### `points_per_opportunity_offense_away`
-Description: Away team's offensive points per scoring opportunity (drives inside opponent 40)
-
-### `points_per_opportunity_defense_home`
-Description: Home team's defensive points per scoring opportunity allowed (drives inside opponent 40)
-
-### `points_per_opportunity_defense_away`
-Description: Away team's defensive points per scoring opportunity allowed (drives inside opponent 40)
-
-### `avg_start_offense_home`
-Description: Home team's average starting field position for offensive drives
-
-### `avg_start_defense_home`
-Description: Home team's average starting field position for defensive drives
-
-### `avg_start_offense_away`
-Description: Away team's average starting field position for offensive drives
-
-### `avg_start_defense_away`
-Description: Away team's average starting field position for defensive drives
+### `confernces.csv`
+```csv
+name,abbreviation,division
+```
+
+### `teams.csv`
+```csv
+id,school,abbreviation,nickname,mascot,full_name,classification,conference_id,conference,conference_division,home_venue_id,home_venue,venue_capacity,grass,city,state,zip,country_code,location,elevation,timezone
+```
+
+### `games.csv`
+```csv
+id,season,season_type,week,start_date,start_time_tbd,neutral_site,conference_game,attendance,venue_id,notes,status,excitement,home_team_id,home_team,home_conference_id,home_conference,home_classification,home_points,home_line_scores,home_postgame_win_prob,home_start_elo,home_end_elo,away_team_id,away_team,away_conference_id,away_conference,away_classification,away_points,away_line_scores,away_postgame_win_prob,away_start_elo,away_end_elo
+```
+
+### `advanced_game_stats/2023.csv`
+```csv
+gameId,season,week,team,opponent,offense_passingPlays_explosiveness,offense_passingPlays_successRate,offense_passingPlays_totalPPA,offense_passingPlays_ppa,offense_rushingPlays_explosiveness,offense_rushingPlays_successRate,offense_rushingPlays_totalPPA,offense_rushingPlays_ppa,offense_passingDowns_explosiveness,offense_passingDowns_successRate,offense_passingDowns_ppa,offense_standardDowns_explosiveness,offense_standardDowns_successRate,offense_standardDowns_ppa,offense_openFieldYardsTotal,offense_openFieldYards,offense_secondLevelYardsTotal,offense_secondLevelYards,offense_lineYardsTotal,offense_lineYards,offense_stuffRate,offense_powerSuccess,offense_explosiveness,offense_successRate,offense_totalPPA,offense_ppa,offense_drives,offense_plays,defense_passingPlays_explosiveness,defense_passingPlays_successRate,defense_passingPlays_totalPPA,defense_passingPlays_ppa,defense_rushingPlays_explosiveness,defense_rushingPlays_successRate,defense_rushingPlays_totalPPA,defense_rushingPlays_ppa,defense_passingDowns_explosiveness,defense_passingDowns_successRate,defense_passingDowns_ppa,defense_standardDowns_explosiveness,defense_standardDowns_successRate,defense_standardDowns_ppa,defense_openFieldYardsTotal,defense_openFieldYards,defense_secondLevelYardsTotal,defense_secondLevelYards,defense_lineYardsTotal,defense_lineYards,defense_stuffRate,defense_powerSuccess,defense_explosiveness,defense_successRate,defense_totalPPA,defense_ppa,defense_drives,defense_plays
+```
+
+### `advanced_season_stats/2023.csv`
+```csv
+season,team,conference,offense_passingPlays_explosiveness,offense_passingPlays_successRate,offense_passingPlays_totalPPA,offense_passingPlays_ppa,offense_passingPlays_rate,offense_rushingPlays_explosiveness,offense_rushingPlays_successRate,offense_rushingPlays_totalPPA,offense_rushingPlays_ppa,offense_rushingPlays_rate,offense_passingDowns_explosiveness,offense_passingDowns_successRate,offense_passingDowns_ppa,offense_passingDowns_rate,offense_standardDowns_explosiveness,offense_standardDowns_successRate,offense_standardDowns_ppa,offense_standardDowns_rate,offense_havoc_db,offense_havoc_frontSeven,offense_havoc_total,offense_fieldPosition_averagePredictedPoints,offense_fieldPosition_averageStart,offense_pointsPerOpportunity,offense_totalOpportunies,offense_openFieldYardsTotal,offense_openFieldYards,offense_secondLevelYardsTotal,offense_secondLevelYards,offense_lineYardsTotal,offense_lineYards,offense_stuffRate,offense_powerSuccess,offense_explosiveness,offense_successRate,offense_totalPPA,offense_ppa,offense_drives,offense_plays,defense_passingPlays_explosiveness,defense_passingPlays_successRate,defense_passingPlays_totalPPA,defense_passingPlays_ppa,defense_passingPlays_rate,defense_rushingPlays_explosiveness,defense_rushingPlays_successRate,defense_rushingPlays_totalPPA,defense_rushingPlays_ppa,defense_rushingPlays_rate,defense_passingDowns_explosiveness,defense_passingDowns_successRate,defense_passingDowns_totalPPA,defense_passingDowns_ppa,defense_passingDowns_rate,defense_standardDowns_explosiveness,defense_standardDowns_successRate,defense_standardDowns_ppa,defense_standardDowns_rate,defense_havoc_db,defense_havoc_frontSeven,defense_havoc_total,defense_fieldPosition_averagePredictedPoints,defense_fieldPosition_averageStart,defense_pointsPerOpportunity,defense_totalOpportunies,defense_openFieldYardsTotal,defense_openFieldYards,defense_secondLevelYardsTotal,defense_secondLevelYards,defense_lineYardsTotal,defense_lineYards,defense_stuffRate,defense_powerSuccess,defense_explosiveness,defense_successRate,defense_totalPPA,defense_ppa,defense_drives,defense_plays
+```
+
+### `drives/2023.csv`
+```csv
+offense,offenseConference,defense,defenseConference,gameId,id,driveNumber,scoring,startPeriod,startYardline,startYardsToGoal,startTime,endPeriod,endYardline,endYardsToGoal,endTime,plays,yards,driveResult,isHomeOffense,startOffenseScore,startDefenseScore,endOffenseScore,endDefenseScore
+```
+
+### `game_stats/2023.csv`
+```csv
+game_id,season,week,season_type,home_away,team_id,team,conference,opponent_id,opponent,opponent_conference,completionAttempts,defensiveTDs,firstDowns,fourthDownEff,fumblesLost,fumblesRecovered,interceptionTDs,interceptionYards,interceptions,kickReturnTDs,kickReturnYards,kickReturns,kickingPoints,netPassingYards,passesDeflected,passesIntercepted,passingTDs,possessionTime,puntReturnTDs,puntReturnYards,puntReturns,qbHurries,rushingAttempts,rushingTDs,rushingYards,sacks,tackles,tacklesForLoss,thirdDownEff,totalFumbles,totalPenaltiesYards,totalYards,turnovers,yardsPerPass,yardsPerRushAttempt
+```
+
+### `plays/2023/regular_13_plays.csv`
+```csv
+id,driveId,gameId,driveNumber,playNumber,offense,offenseConference,offenseScore,defense,home,away,defenseConference,defenseScore,period,clock,offenseTimeouts,defenseTimeouts,yardline,yardsToGoal,down,distance,yardsGained,scoring,playType,playText,ppa,wallclock
+```
+
+### `season_stats/2023.csv`
+```csv
+season,team,conference,firstDowns,firstDownsOpponent,fourthDownConversions,fourthDownConversionsOpponent,fourthDowns,fourthDownsOpponent,fumblesLost,fumblesLostOpponent,fumblesRecovered,fumblesRecoveredOpponent,games,interceptionTDs,interceptionTDsOpponent,interceptionYards,interceptionYardsOpponent,interceptions,interceptionsOpponent,kickReturnTDs,kickReturnTDsOpponent,kickReturnYards,kickReturnYardsOpponent,kickReturns,kickReturnsOpponent,netPassingYards,netPassingYardsOpponent,passAttempts,passAttemptsOpponent,passCompletions,passCompletionsOpponent,passesIntercepted,passesInterceptedOpponent,passingTDs,passingTDsOpponent,penalties,penaltiesOpponent,penaltyYards,penaltyYardsOpponent,possessionTime,possessionTimeOpponent,puntReturnTDs,puntReturnTDsOpponent,puntReturnYards,puntReturnYardsOpponent,puntReturns,puntReturnsOpponent,rushingAttempts,rushingAttemptsOpponent,rushingTDs,rushingTDsOpponent,rushingYards,rushingYardsOpponent,sacks,sacksOpponent,tacklesForLoss,tacklesForLossOpponent,thirdDownConversions,thirdDownConversionsOpponent,thirdDowns,thirdDownsOpponent,totalYards,totalYardsOpponent,turnovers,turnoversOpponent
+```
