@@ -124,6 +124,20 @@ This will install the package in development mode and make the `cfbmodel` comman
 
 The model can be used either by running the main script directly or through the installed package.
 
+### 🚀 Quick Start: Weekly Predictions (NEW!)
+
+Run predictions for the current week's games with automatic week detection:
+
+```bash
+# Set your API key
+export CFB_API_KEY="YOUR_API_KEY"
+
+# Run predictions for this week (automatically detected)
+python run_weekly_predictions.py --train --train-year 2024
+```
+
+For detailed instructions, see [WEEKLY_PREDICTIONS_GUIDE.md](WEEKLY_PREDICTIONS_GUIDE.md).
+
 ### Training a Model
 
 Train a model using data from a specific season:
@@ -195,16 +209,19 @@ Modify `config.py` to customize model parameters:
 
 ```
 cfbmodel/
-├── data_fetcher.py       # API client with retry logic and validation
-├── preprocessor.py       # Data preprocessing and feature engineering
-├── model.py              # ML model definitions with logging
-├── main.py               # CLI interface
-├── config.py             # Configuration parameters
-├── test_cfb_model.py     # Unit tests
-├── example.py            # Usage examples
-├── requirements.txt      # Python dependencies
-├── TESTING_SUMMARY.md    # Test results and validation
-└── README.md             # This file
+├── data_fetcher.py                # API client with retry logic and validation
+├── preprocessor.py                # Data preprocessing and feature engineering
+├── model.py                       # ML model definitions with logging
+├── main.py                        # CLI interface
+├── run_weekly_predictions.py      # NEW: Automatic weekly predictions script
+├── test_weekly_predictions.py     # NEW: Test script for weekly predictions
+├── config.py                      # Configuration parameters
+├── test_cfb_model.py              # Unit tests
+├── example.py                     # Usage examples
+├── requirements.txt               # Python dependencies
+├── TESTING_SUMMARY.md             # Test results and validation
+├── WEEKLY_PREDICTIONS_GUIDE.md    # NEW: Guide for weekly predictions
+└── README.md                      # This file
 ```
 
 ## Improvements in This Version
