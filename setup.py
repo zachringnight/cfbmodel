@@ -7,8 +7,14 @@ from setuptools import setup, find_packages
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+# Inline install_requires instead of reading requirements.txt
+requirements = [
+    # Add your requirements here, e.g.:
+    "numpy>=1.21.0",
+    "scikit-learn>=0.24.0",
+    "pandas>=1.3.0",
+    # ... add other requirements as needed
+]
 
 setup(
     name="cfbmodel",
