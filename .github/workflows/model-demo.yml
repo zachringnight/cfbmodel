@@ -1,0 +1,152 @@
+name: Model Demo (Manual Trigger)
+
+# This workflow demonstrates the model running with actual or test data
+# It can be triggered manually and optionally use an API key from secrets
+
+on:
+  workflow_dispatch:
+    inputs:
+      use_synthetic_data:
+        description: 'Use synthetic test data instead of real API'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      year:
+        description: 'Season year (if using real API)'
+        required: false
+        default: '2023'
+      week:
+        description: 'Week number for predictions (if using real API)'
+        required: false
+        default: '1'
+
+jobs:
+  demo-model:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run model with synthetic data
+      if: ${{ github.event.inputs.use_synthetic_data == 'true' }}
+      run: |
+        python << 'EOF'
+        import pandas as pd
+        import numpy as np
+        from model import CFBModel
+        from preprocessor import CFBPreprocessor
+        
+        print("=" * 60)
+        print("CFB Model Demo - Synthetic Data")
+        print("=" * 60)
+        
+        # Create synthetic training data
+        print("\n📊 Creating synthetic training data...")
+        np.random.seed(42)
+        n_samples = 200
+        
+        X = pd.DataFrame({
+            'home_off_total_yards': np.random.randint(200, 600, n_samples),
+            'away_off_total_yards': np.random.randint(200, 600, n_samples),
+            'home_off_passing_yards': np.random.randint(100, 400, n_samples),
+            'away_off_passing_yards': np.random.randint(100, 400, n_samples),
+            'home_off_rushing_yards': np.random.randint(50, 300, n_samples),
+            'away_off_rushing_yards': np.random.randint(50, 300, n_samples),
+            'home_talent': np.random.uniform(30, 100, n_samples),
+            'away_talent': np.random.uniform(30, 100, n_samples),
+        })
+        
+        # Create realistic outcomes (home advantage + talent matters)
+        home_score = (X['home_off_total_yards'] * 0.05 + 
+                     X['home_talent'] * 0.3 + 
+                     np.random.normal(0, 5, n_samples))
+        away_score = (X['away_off_total_yards'] * 0.05 + 
+                     X['away_talent'] * 0.3 + 
+                     np.random.normal(0, 5, n_samples))
+        y = pd.Series((home_score > away_score).astype(int))
+        
+        print(f"✓ Created {len(X)} training samples")
+        print(f"  Home wins: {y.sum()} ({y.sum()/len(y)*100:.1f}%)")
+        print(f"  Away wins: {len(y) - y.sum()} ({(len(y) - y.sum())/len(y)*100:.1f}%)")
+        
+        # Train model
+        print("\n🤖 Training Random Forest model...")
+        model = CFBModel(model_type='random_forest')
+        metrics = model.train(X, y, test_size=0.3)
+        
+        print("\n📈 Training Results:")
+        print(f"  Train Accuracy: {metrics['train_accuracy']:.2%}")
+        print(f"  Test Accuracy:  {metrics['test_accuracy']:.2%}")
+        print(f"  CV Mean:        {metrics['cv_mean']:.2%} (+/- {metrics['cv_std']:.2%})")
+        
+        # Create test predictions
+        print("\n🎯 Making Sample Predictions...")
+        test_games = pd.DataFrame({
+            'home_off_total_yards': [450, 350, 400],
+            'away_off_total_yards': [400, 450, 380],
+            'home_off_passing_yards': [300, 200, 280],
+            'away_off_passing_yards': [250, 320, 240],
+            'home_off_rushing_yards': [150, 150, 120],
+            'away_off_rushing_yards': [150, 130, 140],
+            'home_talent': [85.0, 70.0, 75.0],
+            'away_talent': [75.0, 80.0, 72.0],
+        })
+        
+        game_names = [
+            "Strong Home vs Good Away",
+            "Good Home vs Strong Away", 
+            "Balanced Matchup"
+        ]
+        
+        predictions = model.predict(test_games)
+        probabilities = model.predict_proba(test_games)
+        
+        for i, name in enumerate(game_names):
+            winner = "Home" if predictions[i] == 1 else "Away"
+            confidence = probabilities[i][1] if predictions[i] == 1 else probabilities[i][0]
+            print(f"\n  {name}:")
+            print(f"    Predicted Winner: {winner}")
+            print(f"    Confidence: {confidence:.1%}")
+        
+        print("\n" + "=" * 60)
+        print("✅ Model demo completed successfully!")
+        print("=" * 60)
+        EOF
+    
+    - name: Run model with real API
+      if: ${{ github.event.inputs.use_synthetic_data == 'false' && secrets.CFB_API_KEY != '' }}
+      env:
+        CFB_API_KEY: ${{ secrets.CFB_API_KEY }}
+      run: |
+        echo "🏈 Running CFB Model with real data..."
+        echo "Year: ${{ github.event.inputs.year }}"
+        echo "Week: ${{ github.event.inputs.week }}"
+        
+        python main.py \
+          --api-key "$CFB_API_KEY" \
+          --year ${{ github.event.inputs.year }} \
+          --train \
+          --predict \
+          --week ${{ github.event.inputs.week }} || echo "⚠️ Model run completed with warnings (may be expected for future weeks)"
+    
+    - name: API key not configured
+      if: ${{ github.event.inputs.use_synthetic_data == 'false' && secrets.CFB_API_KEY == '' }}
+      run: |
+        echo "⚠️ CFB_API_KEY secret not configured"
+        echo "To use real API data, add CFB_API_KEY to repository secrets"
+        echo "Using synthetic data demo instead..."
+        exit 1

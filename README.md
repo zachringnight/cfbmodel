@@ -217,6 +217,19 @@ The CI workflow:
 ### View Workflow Status
 Check the [Actions tab](../../actions) in the GitHub repository to see the status of the CI workflow.
 
+### Manual Model Demo
+A manual workflow (`model-demo.yml`) is also available for demonstrating the model:
+- Can be triggered manually from the Actions tab
+- Option to use synthetic test data or real API data
+- Shows complete model training and prediction pipeline
+- Useful for demonstrations and validating model functionality
+
+To run the demo:
+1. Go to the [Actions tab](../../actions)
+2. Select "Model Demo (Manual Trigger)"
+3. Click "Run workflow"
+4. Choose synthetic or real data (real data requires CFB_API_KEY secret)
+
 ## Configuration
 
 Modify `config.py` to customize model parameters:
@@ -232,7 +245,8 @@ Modify `config.py` to customize model parameters:
 cfbmodel/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                 # CI workflow for automated testing
+│       ├── ci.yml                 # CI workflow for automated testing
+│       └── model-demo.yml         # Manual demo workflow
 ├── data_fetcher.py                # API client with retry logic and validation
 ├── preprocessor.py                # Data preprocessing and feature engineering
 ├── model.py                       # ML model definitions with logging
