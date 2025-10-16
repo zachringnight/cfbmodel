@@ -192,7 +192,7 @@ This will generate:
 - name: Download predictions
   uses: actions/download-artifact@v4
   with:
-    name: predictions-data-latest
+    name: predictions-data-${{ github.run_number }}
 
 - name: Process predictions
   run: |
