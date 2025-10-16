@@ -14,14 +14,14 @@
 ### ❌ WRONG - Hardcoded API Key
 ```python
 # NEVER DO THIS!
-api_key = "OvDDxP6B6eSjqOGQYXQ5H6iQ57tzKnYhGgoKmOwuV/fwlIpSp9ssZtHH4OJK7b09"
+api_key = "your_actual_api_key_here"
 fetcher = CFBDataFetcher(api_key)
 ```
 
 ```yaml
 # NEVER DO THIS!
 env:
-  CFB_API_KEY: "OvDDxP6B6eSjqOGQYXQ5H6iQ57tzKnYhGgoKmOwuV/fwlIpSp9ssZtHH4OJK7b09"
+  CFB_API_KEY: "your_actual_api_key_here"
 ```
 
 ### ✅ CORRECT - Using GitHub Secrets
