@@ -129,6 +129,13 @@ models/
 *.joblib
 *.h5
 
+# Prediction outputs
+predictions*.json
+predictions*.csv
+predictions_output.txt
+summary.md
+exit_code.txt
+
 # IDE
 .vscode/
 .idea/
