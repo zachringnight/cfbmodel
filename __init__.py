@@ -31,8 +31,6 @@ try:  # pragma: no cover - import resolution logic
     from .preprocessor import CFBPreprocessor
     from .data_fetcher import CFBDataFetcher
 except ImportError:  # pragma: no cover
-    from model import CFBModel
-    from preprocessor import CFBPreprocessor
-    from data_fetcher import CFBDataFetcher
+    raise
 
 __all__ = ['CFBModel', 'CFBPreprocessor', 'CFBDataFetcher']
