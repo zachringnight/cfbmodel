@@ -1,5 +1,7 @@
 # 🏈 College Football Data Starter Pack
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/zachringnight/cfbmodel/run-model.yml?label=Weekly%20Predictions)
+
 Welcome to the **CollegeFootballData.com Starter Pack** — a curated bundle of structured college football data, custom advanced metrics, and real-world Jupyter notebooks to help you build models, explore trends, and launch your own analytics projects faster.
 
 ---
@@ -124,7 +126,22 @@ This will install the package in development mode and make the `cfbmodel` comman
 
 The model can be used either by running the main script directly or through the installed package.
 
-### 🚀 Quick Start: Weekly Predictions (NEW!)
+### 🤖 Automated Workflow (NEW!)
+
+The model can run automatically via GitHub Actions:
+
+- **Scheduled**: Runs every Saturday at 8 AM UTC
+- **Manual**: Trigger from GitHub Actions tab with custom parameters
+- **Outputs**: JSON and CSV predictions, trained models, and logs
+
+See [.github/WORKFLOW_DOCUMENTATION.md](.github/WORKFLOW_DOCUMENTATION.md) for complete workflow documentation.
+
+**Quick Setup:**
+1. Add your API key as a GitHub secret named `CFB_API_KEY`
+2. The workflow will automatically run weekly
+3. Download predictions from the Actions artifacts
+
+### 🚀 Quick Start: Weekly Predictions
 
 Run predictions for the current week's games with automatic week detection:
 
@@ -132,7 +149,10 @@ Run predictions for the current week's games with automatic week detection:
 # Set your API key
 export CFB_API_KEY="YOUR_API_KEY"
 
-# Run predictions for this week (automatically detected)
+# Run predictions with structured outputs (JSON + CSV)
+python run_predictions_with_outputs.py --train --train-year 2024
+
+# Or use the simpler script (text output only)
 python run_weekly_predictions.py --train --train-year 2024
 ```
 
