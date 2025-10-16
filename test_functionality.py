@@ -6,32 +6,39 @@ Tests all core features without requiring an API key
 
 import sys
 import os
-import pandas as pd
-import numpy as np
+import sys
+from functools import wraps
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 # Test results
 test_results = []
 
-def test(name):
-    """Decorator to track test results"""
+def register_test(name):
+    """Decorator to track test results without interfering with pytest."""
+
     def decorator(func):
-        def wrapper():
+        @wraps(func)
+        def wrapper(*args, **kwargs):
             try:
-                func()
+                func(*args, **kwargs)
+            except Exception as exc:  # pragma: no cover - exercised via pytest
+                print(f"❌ FAIL: {name}")
+                print(f"   Error: {exc}")
+                test_results.append((name, False, str(exc)))
+                raise
+            else:
                 print(f"✅ PASS: {name}")
                 test_results.append((name, True, None))
-                return True
-            except Exception as e:
-                print(f"❌ FAIL: {name}")
-                print(f"   Error: {str(e)}")
-                test_results.append((name, False, str(e)))
-                return False
+
         return wrapper
+
     return decorator
 
 
-@test("Import core modules")
+@register_test("Import core modules")
 def test_imports():
     """Test that all core modules can be imported"""
     from model import CFBModel
@@ -44,7 +51,7 @@ def test_imports():
     assert config.MODEL_TYPE is not None
 
 
-@test("Initialize CFBModel")
+@register_test("Initialize CFBModel")
 def test_model_init():
     """Test model initialization"""
     from model import CFBModel
@@ -53,7 +60,7 @@ def test_model_init():
     assert model.model is not None
 
 
-@test("Initialize CFBPreprocessor")
+@register_test("Initialize CFBPreprocessor")
 def test_preprocessor_init():
     """Test preprocessor initialization"""
     from preprocessor import CFBPreprocessor
@@ -61,7 +68,7 @@ def test_preprocessor_init():
     assert preprocessor is not None
 
 
-@test("Initialize CFBDataFetcher")
+@register_test("Initialize CFBDataFetcher")
 def test_data_fetcher_init():
     """Test data fetcher initialization with dummy key"""
     from data_fetcher import CFBDataFetcher
@@ -69,7 +76,7 @@ def test_data_fetcher_init():
     assert fetcher.api_key == "test_key_123"
 
 
-@test("Train model with synthetic data")
+@register_test("Train model with synthetic data")
 def test_model_training():
     """Test model training with synthetic data"""
     from model import CFBModel
@@ -101,7 +108,7 @@ def test_model_training():
     assert metrics['train_accuracy'] > 0.5  # Should do better than random
 
 
-@test("Make predictions")
+@register_test("Make predictions")
 def test_predictions():
     """Test model predictions"""
     from model import CFBModel
@@ -128,7 +135,7 @@ def test_predictions():
     assert all(0 <= p <= 1 for row in probabilities for p in row)
 
 
-@test("Save and load model")
+@register_test("Save and load model")
 def test_save_load():
     """Test saving and loading model"""
     from model import CFBModel
@@ -166,7 +173,7 @@ def test_save_load():
             os.remove(tmp_path)
 
 
-@test("Preprocessor feature preparation")
+@register_test("Preprocessor feature preparation")
 def test_feature_prep():
     """Test feature preparation"""
     from preprocessor import CFBPreprocessor
@@ -196,7 +203,7 @@ def test_feature_prep():
     assert 'home_team' in features.columns or 'homeTeam' in features.columns
 
 
-@test("Preprocessor training data creation")
+@register_test("Preprocessor training data creation")
 def test_training_data_creation():
     """Test creating training data from features"""
     from preprocessor import CFBPreprocessor
@@ -219,7 +226,7 @@ def test_training_data_creation():
     assert all(label in [0, 1] for label in y)
 
 
-@test("Main script is executable")
+@register_test("Main script is executable")
 def test_main_executable():
     """Test that main.py has executable permissions"""
     main_path = Path(__file__).parent / "main.py"
@@ -227,7 +234,7 @@ def test_main_executable():
     assert os.access(main_path, os.X_OK)
 
 
-@test("Command-line interface works")
+@register_test("Command-line interface works")
 def test_cli():
     """Test command-line interface"""
     import subprocess
