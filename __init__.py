@@ -1,5 +1,16 @@
-"""College Football Prediction Model package exports."""
+"""
+College Football Prediction Model (cfbmodel) package.
 
+This package provides tools for building, preprocessing, and fetching data for
+college football prediction models.
+
+Primary exports:
+- CFBModel: Core class for constructing and training prediction models.
+- CFBPreprocessor: Utility for preparing and transforming raw data for modeling.
+- CFBDataFetcher: Component for retrieving and managing college football datasets.
+
+Import these classes to build, preprocess, and evaluate college football prediction models.
+"""
 from __future__ import annotations
 
 import os
