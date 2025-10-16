@@ -98,9 +98,17 @@ game_number,home_team,away_team,start_date,predicted_winner,confidence,home_win_
 
 ## Required Secrets
 
+⚠️ **SECURITY WARNING**: The API key provided in the PR comment has been exposed publicly and must be revoked immediately. Never post API keys in comments, issues, or code.
+
 The workflow requires one secret to be set in the repository:
 
 - **CFB_API_KEY**: Your College Football Data API key
+
+**Important Security Notes:**
+- API keys must NEVER be hardcoded in code or workflow files
+- The workflow uses GitHub Secrets to securely store and access the API key
+- Keys are encrypted and not visible in logs or workflow runs
+- See [SECURITY.md](SECURITY.md) for complete security best practices
 
 To set this up:
 1. Go to your repository on GitHub
@@ -108,6 +116,8 @@ To set this up:
 3. Click "New repository secret"
 4. Name: `CFB_API_KEY`
 5. Value: Your API key from https://collegefootballdata.com/
+
+**If your key was exposed:** Follow the steps in [SECURITY.md](SECURITY.md) to revoke and replace it.
 
 ## Running the Workflow Manually
 

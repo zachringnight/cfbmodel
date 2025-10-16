@@ -137,9 +137,12 @@ The model can run automatically via GitHub Actions:
 See [.github/WORKFLOW_DOCUMENTATION.md](.github/WORKFLOW_DOCUMENTATION.md) for complete workflow documentation.
 
 **Quick Setup:**
-1. Add your API key as a GitHub secret named `CFB_API_KEY`
+1. Add your API key as a GitHub secret named `CFB_API_KEY` ([Security Guide](.github/SECURITY.md))
 2. The workflow will automatically run weekly
 3. Download predictions from the Actions artifacts
+
+> ⚠️ **Security Notice**: Never hardcode API keys in code or commit them to the repository. 
+> The workflow is designed to use GitHub Secrets securely. See [.github/SECURITY.md](.github/SECURITY.md) for best practices.
 
 ### 🚀 Quick Start: Weekly Predictions
 
