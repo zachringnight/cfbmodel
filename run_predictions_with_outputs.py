@@ -22,7 +22,7 @@ def get_current_week(year, start_date=None):
         start_date: Optional start date of the season
         
     Returns:
-        Current week number (1-15 for regular season)
+        Current week number (0-15 for regular season, where 0 is "Week 0")
     """
     from datetime import datetime, timedelta
     
