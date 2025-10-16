@@ -130,4 +130,4 @@ When manually running the workflow:
 - The workflow does NOT modify or create repository secrets
 - Repository administrators must add `CFB_API_KEY` via Settings > Secrets
 - Workflow input is ephemeral and not stored
-- API keys provided via workflow input are masked in logs by GitHub Actions
+- API keys provided via workflow input are NOT automatically masked in logs by GitHub Actions (unlike secrets); the workflow avoids printing the input to logs so it does not appear.
