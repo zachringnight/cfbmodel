@@ -127,13 +127,12 @@ def test_model_outputs():
     print(json.dumps(output_data['predictions'][0], indent=2))
     
     print("\n=== All Tests Passed ✓ ===\n")
-    return True
 
 
 if __name__ == "__main__":
     try:
-        success = test_model_outputs()
-        sys.exit(0 if success else 1)
+        test_model_outputs()
+        sys.exit(0)
     except Exception as e:
         print(f"\n✗ Test failed: {e}")
         import traceback
