@@ -72,6 +72,8 @@ To run the Jupyter notebooks, install:
 
 A production-ready machine learning model for predicting college football game outcomes using data from the [College Football Data API](https://collegefootballdata.com/).
 
+![CI Status](https://github.com/zachringnight/cfbmodel/actions/workflows/ci.yml/badge.svg)
+
 ## Features
 
 - 🔄 **Robust API Client** with automatic retry logic and timeout handling
@@ -82,6 +84,7 @@ A production-ready machine learning model for predicting college football game o
 - 🧪 **Unit Tests** for core functionality
 - ⚙️ **Configurable Parameters** via config.py
 - 📈 **Confidence Scores** for each prediction
+- 🚀 **CI/CD Pipeline** with automated testing on multiple Python versions
 
 ## Prerequisites
 
@@ -196,6 +199,24 @@ All 10 tests should pass, covering:
 - Prediction functionality
 - Data preprocessing
 
+## Continuous Integration
+
+This project includes a GitHub Actions CI workflow that automatically tests the model on every push and pull request.
+
+The CI workflow:
+- **Tests on Multiple Python Versions**: Runs tests on Python 3.9, 3.10, 3.11, and 3.12
+- **Validates Module Imports**: Ensures all core modules can be imported
+- **Tests Model Functionality**: Trains and validates the model with synthetic data
+- **Runs Unit Tests**: Executes the full test suite automatically
+
+### Workflow Triggers
+- Push to `main`, `master`, `develop`, or any `copilot/**` branch
+- Pull requests to `main`, `master`, or `develop`
+- Manual workflow dispatch
+
+### View Workflow Status
+Check the [Actions tab](../../actions) in the GitHub repository to see the status of the CI workflow.
+
 ## Configuration
 
 Modify `config.py` to customize model parameters:
@@ -209,6 +230,9 @@ Modify `config.py` to customize model parameters:
 
 ```
 cfbmodel/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                 # CI workflow for automated testing
 ├── data_fetcher.py                # API client with retry logic and validation
 ├── preprocessor.py                # Data preprocessing and feature engineering
 ├── model.py                       # ML model definitions with logging
