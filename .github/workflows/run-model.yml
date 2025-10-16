@@ -8,6 +8,10 @@ on:
   # Allow manual workflow dispatch
   workflow_dispatch:
     inputs:
+      api_key:
+        description: 'Optional: CFB API key to use for this run (will not be stored in repository).'
+        required: false
+        default: ''
       year:
         description: 'Season year for predictions'
         required: false
@@ -40,10 +44,68 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Run model training and predictions
-        env:
-          CFB_API_KEY: ${{ secrets.CFB_API_KEY }}
+      - name: Check API key availability
         run: |
+          # Check if API key is available from either secret or workflow input
+          if [ -n "${{ secrets.CFB_API_KEY }}" ] || [ -n "${{ github.event.inputs.api_key }}" ]; then
+            echo "✓ API key is available"
+            echo "0" > exit_code.txt
+          else
+            echo "❌ ERROR: No API key provided"
+            echo ""
+            echo "To run this workflow, you need to provide a CFB API key:"
+            echo ""
+            echo "Option 1 (Recommended): Add CFB_API_KEY as a repository secret"
+            echo "  - Go to: Settings > Secrets and variables > Actions > New repository secret"
+            echo "  - Name: CFB_API_KEY"
+            echo "  - Value: Your API key from https://collegefootballdata.com/"
+            echo ""
+            echo "Option 2: Provide api_key when manually running this workflow"
+            echo "  - Go to: Actions > Run CFB Model and Generate Predictions > Run workflow"
+            echo "  - Enter your API key in the 'api_key' field"
+            echo ""
+            echo "Get your free API key at: https://collegefootballdata.com/"
+            echo ""
+            # Write error info to files for artifacts
+            echo "1" > exit_code.txt
+            echo "# CFB Model Run Summary" > summary.md
+            echo "" >> summary.md
+            echo "**Date:** $(date)" >> summary.md
+            echo "**Workflow Run:** ${{ github.run_number }}" >> summary.md
+            echo "" >> summary.md
+            echo "**Status:** ❌ Failed - Missing API Key" >> summary.md
+            echo "" >> summary.md
+            echo "## Error Details" >> summary.md
+            echo "" >> summary.md
+            echo "No CFB API key was provided. Please add CFB_API_KEY as a repository secret or provide it as a workflow input." >> summary.md
+            echo "" >> summary.md
+            echo "### How to Fix" >> summary.md
+            echo "" >> summary.md
+            echo "**Option 1 (Recommended):** Add as repository secret" >> summary.md
+            echo "- Navigate to: Settings > Secrets and variables > Actions" >> summary.md
+            echo "- Click 'New repository secret'" >> summary.md
+            echo "- Name: \`CFB_API_KEY\`" >> summary.md
+            echo "- Value: Your API key from https://collegefootballdata.com/" >> summary.md
+            echo "" >> summary.md
+            echo "**Option 2:** Provide when manually running" >> summary.md
+            echo "- Go to: Actions > Run CFB Model and Generate Predictions > Run workflow" >> summary.md
+            echo "- Enter your API key in the 'api_key' input field" >> summary.md
+            echo "" >> summary.md
+            echo "Get your free API key at: https://collegefootballdata.com/" >> summary.md
+            # Display in workflow summary
+            cat summary.md >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+      
+      - name: Run model training and predictions
+        run: |
+          # Set API key from secret or workflow input (prefer secret)
+          if [ -n "${{ secrets.CFB_API_KEY }}" ]; then
+            export CFB_API_KEY="${{ secrets.CFB_API_KEY }}"
+          elif [ -n "${{ github.event.inputs.api_key }}" ]; then
+            export CFB_API_KEY="${{ github.event.inputs.api_key }}"
+          fi
+          
           # Determine parameters
           YEAR="${{ github.event.inputs.year }}"
           WEEK="${{ github.event.inputs.week }}"
