@@ -193,8 +193,6 @@ def test_workflow_yaml_structure():
     """Test that workflow YAML has expected structure"""
     print("=== Test 6: Workflow YAML structure ===")
     
-    import yaml
-    
     workflow_path = Path(__file__).parent / '.github' / 'workflows' / 'run-model.yml'
     with open(workflow_path) as f:
         content = f.read()
