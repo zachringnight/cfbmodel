@@ -84,7 +84,7 @@ def test_model_outputs():
             "game_number": i + 1,
             "home_team": f"Home Team {i+1}",
             "away_team": f"Away Team {i+1}",
-            "predicted_winner": "Home" if pred == 1 else "Away",
+            "predicted_winner": f"Home Team {i+1}" if pred == 1 else f"Away Team {i+1}",
             "confidence": round(max(prob) * 100, 2),
             "home_win_probability": round(prob[1] * 100, 2),
             "away_win_probability": round(prob[0] * 100, 2)
