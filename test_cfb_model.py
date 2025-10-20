@@ -48,10 +48,11 @@ class TestCFBModel:
         # Linearly separable dataset ensures deterministic accuracy for testing
         np.random.seed(42)
         feature = np.arange(200)
-        noise = np.random.normal(scale=0.01, size=feature.shape)
+        noise_home = np.random.normal(scale=0.01, size=feature.shape)
+        noise_away = np.random.normal(scale=0.01, size=feature.shape)
         X = pd.DataFrame({
-            'home_off_total_yards': feature + noise,
-            'away_off_total_yards': feature[::-1] + noise,
+            'home_off_total_yards': feature + noise_home,
+            'away_off_total_yards': feature[::-1] + noise_away,
         })
         y = pd.Series((feature > 100).astype(int))
 
