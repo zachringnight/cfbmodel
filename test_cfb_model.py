@@ -42,7 +42,24 @@ class TestCFBModel:
         assert 'test_accuracy' in metrics
         assert 'cv_mean' in metrics
         assert 0 <= metrics['test_accuracy'] <= 1
-    
+
+    def test_model_reports_high_test_accuracy_on_linearly_separable_data(self):
+        """Test that the model reports high accuracy on easy data."""
+        # Linearly separable dataset ensures deterministic accuracy for testing
+        np.random.seed(42)
+        feature = np.arange(200)
+        noise = np.random.normal(scale=0.01, size=feature.shape)
+        X = pd.DataFrame({
+            'home_off_total_yards': feature + noise,
+            'away_off_total_yards': feature[::-1] + noise,
+        })
+        y = pd.Series((feature > 100).astype(int))
+
+        model = CFBModel()
+        metrics = model.train(X, y, test_size=0.25)
+
+        assert metrics['test_accuracy'] >= 0.95
+
     def test_model_train_with_empty_data(self):
         """Test that training with empty data raises error"""
         X = pd.DataFrame()
