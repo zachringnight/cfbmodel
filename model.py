@@ -98,7 +98,7 @@ class CFBModel:
         y_array = np.asarray(y)
         unique_classes, class_counts = np.unique(y_array, return_counts=True)
         min_class_count = class_counts.min() if class_counts.size > 0 else 0
-        cv_splits = min(5, len(y_array), int(min_class_count))
+        cv_splits = max(2, min(5, len(y_array), int(min_class_count)))
 
         cv_mean = np.nan
         cv_std = np.nan
