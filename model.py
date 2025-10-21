@@ -95,17 +95,33 @@ class CFBModel:
         logger.info(f"Test accuracy: {test_acc:.4f}")
         
         # Cross-validation score
-        logger.info("Performing cross-validation...")
-        cv_scores = cross_val_score(self.model, X, y, cv=5)
-        logger.info(f"CV score: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
-        
+        y_array = np.asarray(y)
+        unique_classes, class_counts = np.unique(y_array, return_counts=True)
+        min_class_count = class_counts.min() if class_counts.size > 0 else 0
+        cv_splits = min(5, len(y_array), int(min_class_count))
+
+        cv_mean = np.nan
+        cv_std = np.nan
+
+        if cv_splits >= 2 and unique_classes.size > 1:
+            logger.info(f"Performing cross-validation with {cv_splits} folds...")
+            cv_scores = cross_val_score(self.model, X, y, cv=cv_splits)
+            cv_mean = cv_scores.mean()
+            cv_std = cv_scores.std()
+            logger.info(f"CV score: {cv_mean:.4f} (+/- {cv_std:.4f})")
+        else:
+            logger.warning(
+                "Skipping cross-validation due to insufficient class representation "
+                "or too few samples."
+            )
+
         metrics = {
             "train_accuracy": train_acc,
             "test_accuracy": test_acc,
-            "cv_mean": cv_scores.mean(),
-            "cv_std": cv_scores.std(),
+            "cv_mean": cv_mean,
+            "cv_std": cv_std,
             "feature_importance": dict(zip(X.columns, self.model.feature_importances_)),
-            "classification_report": classification_report(y_test, test_pred)
+            "classification_report": classification_report(y_test, test_pred, zero_division=0)
         }
         
         return metrics

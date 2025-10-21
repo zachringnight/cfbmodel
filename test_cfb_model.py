@@ -34,14 +34,28 @@ class TestCFBModel:
             'away_talent': np.random.uniform(0, 100, 100),
         })
         y = pd.Series(np.random.randint(0, 2, 100))
-        
+
         model = CFBModel()
         metrics = model.train(X, y, test_size=0.3)
-        
+
         assert 'train_accuracy' in metrics
         assert 'test_accuracy' in metrics
         assert 'cv_mean' in metrics
         assert 0 <= metrics['test_accuracy'] <= 1
+
+    def test_model_train_with_insufficient_samples_for_cv(self):
+        """Cross-validation should be skipped when class counts are too small."""
+        X = pd.DataFrame({
+            'home_off_total_yards': [300, 320, 310],
+            'away_off_total_yards': [280, 330, 305],
+        })
+        y = pd.Series([1, 1, 0])
+
+        model = CFBModel()
+        metrics = model.train(X, y, test_size=0.34)
+
+        assert np.isnan(metrics['cv_mean'])
+        assert np.isnan(metrics['cv_std'])
 
     def test_model_reports_high_test_accuracy_on_linearly_separable_data(self):
         """Test that the model reports high accuracy on easy data."""
