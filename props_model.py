@@ -10,6 +10,7 @@ Regression-based models for predicting game props:
 import numpy as np
 import pandas as pd
 import logging
+import math
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -235,6 +236,18 @@ class CFBPropsModel:
         predictions = self.predict_with_confidence(X)
 
         recommendations = []
+        tree_predictions = {}
+        if self.model_type == "random_forest":
+            for prop_type in ['spread', 'game_total']:
+                model = self.models.get(prop_type)
+                if model is not None:
+                    tree_predictions[prop_type] = np.array([tree.predict(X) for tree in model.estimators_])
+
+        def normal_cdf(value: float, mean: float, std: float) -> float:
+            if std <= 0:
+                return float(value >= mean)
+            z = (value - mean) / (std * math.sqrt(2))
+            return 0.5 * (1 + math.erf(z))
 
         for i, (idx, row) in enumerate(betting_lines.iterrows()):
             game_rec = {
@@ -251,14 +264,23 @@ class CFBPropsModel:
                 pred_upper = predictions['spread']['upper'][i]
 
                 spread_edge = pred_spread - book_spread
+                if self.model_type == "random_forest" and 'spread' in tree_predictions:
+                    tree_preds = tree_predictions['spread'][:, i]
+                    p_home = float(np.mean(tree_preds > book_spread))
+                else:
+                    std_estimate = max(abs(pred_spread) * 0.15, 1e-6)
+                    p_home = 1 - normal_cdf(book_spread, pred_spread, std_estimate)
+
+                spread_confidence = p_home if spread_edge > 0 else 1 - p_home
 
                 game_rec['book_spread'] = book_spread
                 game_rec['pred_spread'] = round(pred_spread, 1)
                 game_rec['spread_edge'] = round(spread_edge, 1)
                 game_rec['spread_range'] = f"[{pred_lower:.1f}, {pred_upper:.1f}]"
+                game_rec['spread_confidence'] = round(spread_confidence, 2)
 
                 # Determine recommendation
-                if abs(spread_edge) >= min_edge:
+                if abs(spread_edge) >= min_edge and spread_confidence >= confidence_threshold:
                     if spread_edge > 0:
                         game_rec['spread_rec'] = 'TAKE HOME'
                         game_rec['spread_reasoning'] = f"Model predicts home +{spread_edge:.1f} vs line"
@@ -267,7 +289,12 @@ class CFBPropsModel:
                         game_rec['spread_reasoning'] = f"Model predicts away {spread_edge:.1f} vs line"
                 else:
                     game_rec['spread_rec'] = 'NO EDGE'
-                    game_rec['spread_reasoning'] = f"Edge ({spread_edge:.1f}) below threshold ({min_edge})"
+                    if abs(spread_edge) < min_edge:
+                        game_rec['spread_reasoning'] = f"Edge ({spread_edge:.1f}) below threshold ({min_edge})"
+                    else:
+                        game_rec['spread_reasoning'] = (
+                            f"Confidence ({spread_confidence:.2f}) below threshold ({confidence_threshold})"
+                        )
 
             # Total (Over/Under) analysis
             total_col = 'over_under' if 'over_under' in row else 'total'
@@ -278,14 +305,23 @@ class CFBPropsModel:
                 pred_upper = predictions['game_total']['upper'][i]
 
                 total_edge = pred_total - book_total
+                if self.model_type == "random_forest" and 'game_total' in tree_predictions:
+                    tree_preds = tree_predictions['game_total'][:, i]
+                    p_over = float(np.mean(tree_preds > book_total))
+                else:
+                    std_estimate = max(abs(pred_total) * 0.15, 1e-6)
+                    p_over = 1 - normal_cdf(book_total, pred_total, std_estimate)
+
+                total_confidence = p_over if total_edge > 0 else 1 - p_over
 
                 game_rec['book_total'] = book_total
                 game_rec['pred_total'] = round(pred_total, 1)
                 game_rec['total_edge'] = round(total_edge, 1)
                 game_rec['total_range'] = f"[{pred_lower:.1f}, {pred_upper:.1f}]"
+                game_rec['total_confidence'] = round(total_confidence, 2)
 
                 # Determine recommendation
-                if abs(total_edge) >= min_edge:
+                if abs(total_edge) >= min_edge and total_confidence >= confidence_threshold:
                     if total_edge > 0:
                         game_rec['total_rec'] = 'OVER'
                         game_rec['total_reasoning'] = f"Model predicts {total_edge:.1f} pts above line"
@@ -294,7 +330,12 @@ class CFBPropsModel:
                         game_rec['total_reasoning'] = f"Model predicts {abs(total_edge):.1f} pts below line"
                 else:
                     game_rec['total_rec'] = 'NO EDGE'
-                    game_rec['total_reasoning'] = f"Edge ({total_edge:.1f}) below threshold ({min_edge})"
+                    if abs(total_edge) < min_edge:
+                        game_rec['total_reasoning'] = f"Edge ({total_edge:.1f}) below threshold ({min_edge})"
+                    else:
+                        game_rec['total_reasoning'] = (
+                            f"Confidence ({total_confidence:.2f}) below threshold ({confidence_threshold})"
+                        )
 
             # Team points predictions
             game_rec['pred_home_pts'] = round(predictions['home_points']['prediction'][i], 1)
@@ -377,6 +418,8 @@ def format_actionable_output(recommendations: pd.DataFrame) -> str:
             output.append(f"  Book Spread: {row.get('book_spread', 'N/A')}")
             output.append(f"  Predicted: {row.get('pred_spread', 'N/A')} {row.get('spread_range', '')}")
             output.append(f"  Edge: {row.get('spread_edge', 'N/A')} points")
+            if 'spread_confidence' in row:
+                output.append(f"  Confidence: {row.get('spread_confidence', 'N/A')}")
             output.append(f"  >>> ACTION: {rec}")
             output.append(f"  Reasoning: {row.get('spread_reasoning', 'N/A')}")
 
@@ -393,6 +436,8 @@ def format_actionable_output(recommendations: pd.DataFrame) -> str:
             output.append(f"  Book Total: {row.get('book_total', 'N/A')}")
             output.append(f"  Predicted: {row.get('pred_total', 'N/A')} {row.get('total_range', '')}")
             output.append(f"  Edge: {row.get('total_edge', 'N/A')} points")
+            if 'total_confidence' in row:
+                output.append(f"  Confidence: {row.get('total_confidence', 'N/A')}")
             output.append(f"  >>> ACTION: {rec}")
             output.append(f"  Reasoning: {row.get('total_reasoning', 'N/A')}")
 
