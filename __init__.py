@@ -8,6 +8,8 @@ Primary exports:
 - CFBModel: Core class for constructing and training prediction models.
 - CFBPreprocessor: Utility for preparing and transforming raw data for modeling.
 - CFBDataFetcher: Component for retrieving and managing college football datasets.
+- CFBPropsModel: Regression model for predicting game props (points, totals, spreads).
+- CFBPropsPreprocessor: Feature engineering for props predictions.
 
 Import these classes to build, preprocess, and evaluate college football prediction models.
 """
@@ -41,7 +43,16 @@ try:  # pragma: no cover - import resolution logic
     from .model import CFBModel
     from .preprocessor import CFBPreprocessor
     from .data_fetcher import CFBDataFetcher
+    from .props_model import CFBPropsModel, format_actionable_output
+    from .props_preprocessor import CFBPropsPreprocessor
 except ImportError:  # pragma: no cover
     raise
 
-__all__ = ['CFBModel', 'CFBPreprocessor', 'CFBDataFetcher']
+__all__ = [
+    'CFBModel',
+    'CFBPreprocessor',
+    'CFBDataFetcher',
+    'CFBPropsModel',
+    'CFBPropsPreprocessor',
+    'format_actionable_output',
+]
