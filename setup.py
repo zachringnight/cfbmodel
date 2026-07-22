@@ -15,6 +15,7 @@ requirements = [
     "scikit-learn>=1.3.0",
     "urllib3>=2.0.0",
     "pytest>=7.4.0",
+    "cfbd>=5.0.0",
 ]
 
 setup(
