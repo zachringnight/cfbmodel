@@ -161,9 +161,43 @@ class WeeklyPicksGenerator:
 
         return ratings
 
+    def _normalize_ratings(self, ratings: Dict) -> Dict:
+        """Z-score each rating system across all teams with a value that week.
+
+        Raw ELO ratings (~1500 scale) and SP+/FPI/SRS point-scale ratings
+        get averaged together directly downstream. Without standardizing
+        first, whichever system(s) happen to have data for a given matchup
+        dominate the combined signal (ELO alone can swing the average by
+        hundreds of points versus single-digit SP+/FPI/SRS contributions).
+        Standardizing each system to a comparable scale first fixes that.
+        """
+        normalized: Dict[str, Dict[str, float]] = {}
+        for rating_type, team_values in ratings.items():
+            values = list(team_values.values())
+            if len(values) < 2:
+                normalized[rating_type] = dict.fromkeys(team_values, 0.0)
+                continue
+            mean = sum(values) / len(values)
+            variance = sum((v - mean) ** 2 for v in values) / len(values)
+            std = variance ** 0.5
+            if std == 0:
+                normalized[rating_type] = dict.fromkeys(team_values, 0.0)
+            else:
+                normalized[rating_type] = {
+                    team: (value - mean) / std for team, value in team_values.items()
+                }
+        return normalized
+
     def get_win_probabilities(self, year: int, week: int,
                                season_type: str = "regular") -> Dict:
-        """Fetch pregame win probabilities."""
+        """Fetch pregame win probabilities.
+
+        The cfbd>=5 SDK's PregameWinProbability model only exposes a single
+        ``home_win_probability`` field (a 0-1 fraction) — there is no
+        ``away_win_probability``. We derive the away-side value and scale
+        both to 0-100 to match the rest of this module's percentage-based
+        thresholds and display formatting.
+        """
         try:
             probabilities = self.metrics_api.get_pregame_win_probabilities(
                 year=year,
@@ -171,15 +205,17 @@ class WeeklyPicksGenerator:
                 season_type=season_type,
             )
 
-            return {
-                prob.game_id: {
-                    "home_win_prob": prob.home_win_prob,
-                    "away_win_prob": prob.away_win_prob,
+            result = {}
+            for prob in probabilities:
+                if not prob.game_id:
+                    continue
+                home_pct = prob.home_win_probability * 100
+                result[prob.game_id] = {
+                    "home_win_prob": home_pct,
+                    "away_win_prob": 100 - home_pct,
                     "spread": prob.spread,
                 }
-                for prob in probabilities
-                if prob.game_id
-            }
+            return result
         except ApiException as e:
             print(f"Error fetching win probabilities: {e}")
             return {}
@@ -197,16 +233,19 @@ class WeeklyPicksGenerator:
         confidence_score = 0
         reasons = []
 
-        # Rating difference contributes to confidence
-        if abs(ratings_diff) > 20:
+        # Rating difference contributes to confidence.
+        # ratings_diff is an average of per-system z-scores (see
+        # _normalize_ratings), so it typically ranges roughly -3..3 rather
+        # than the raw ELO-dominated scale this was originally tuned for.
+        if abs(ratings_diff) > 1.2:
             confidence_score += 3
-            reasons.append(f"Large rating difference ({ratings_diff:.1f})")
-        elif abs(ratings_diff) > 10:
+            reasons.append(f"Large rating edge ({ratings_diff:+.2f} SD)")
+        elif abs(ratings_diff) > 0.6:
             confidence_score += 2
-            reasons.append(f"Moderate rating difference ({ratings_diff:.1f})")
-        elif abs(ratings_diff) > 5:
+            reasons.append(f"Moderate rating edge ({ratings_diff:+.2f} SD)")
+        elif abs(ratings_diff) > 0.25:
             confidence_score += 1
-            reasons.append(f"Small rating difference ({ratings_diff:.1f})")
+            reasons.append(f"Small rating edge ({ratings_diff:+.2f} SD)")
 
         # Win probability difference
         if abs(win_prob_diff) > 30:
@@ -237,7 +276,12 @@ class WeeklyPicksGenerator:
 
     def make_pick(self, game, ratings: Dict, win_probs: Dict,
                   betting_data: Dict) -> Dict:
-        """Generate a pick for a single game."""
+        """Generate a pick for a single game.
+
+        ``ratings`` is expected to already be normalized (see
+        _normalize_ratings) so that averaging across rating systems is
+        scale-comparable.
+        """
         pick_data = {
             "game_id": game.id,
             "home_team": game.home_team,
@@ -281,9 +325,12 @@ class WeeklyPicksGenerator:
         elif ratings_diff < 0 or win_prob_diff < 0:
             pick_data["pick"] = game.away_team
         else:
-            # No clear edge; go with home-field advantage
+            # No clear edge; go with home-field advantage. Use a small
+            # nudge (well under the "small edge" threshold) rather than a
+            # full z-score's worth of ratings_diff, since this path means
+            # we have no real signal and shouldn't be scored as if we did.
             pick_data["pick"] = game.home_team
-            ratings_diff = 1
+            ratings_diff = 0.1
 
         confidence, reasoning = self.calculate_pick_confidence(
             ratings_diff, win_prob_diff, pick_data["spread"]
@@ -312,7 +359,7 @@ class WeeklyPicksGenerator:
         betting_data = self.get_betting_lines(year, week, season_type)
 
         print("Fetching team ratings...")
-        ratings = self.get_team_ratings(year, week)
+        ratings = self._normalize_ratings(self.get_team_ratings(year, week))
 
         print("Fetching win probabilities...")
         win_probs = self.get_win_probabilities(year, week, season_type)
