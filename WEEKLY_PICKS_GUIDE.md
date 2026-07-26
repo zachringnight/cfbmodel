@@ -86,15 +86,37 @@ python weekly_picks_cfbd.py --year 2024 --week 10 --min-confidence HIGH
    - **SRS**: Simple Rating System based on point differential and strength of schedule
 3. **Win Probabilities**: Pregame win probability models from CFBD
 
+Each rating system is standardized (z-scored across that week's teams)
+before being averaged together, since ELO's raw ~1500 scale would otherwise
+swamp SP+/FPI/SRS's much smaller point scales. Each of the four rating
+sources is also fetched independently, so one temporarily-unavailable feed
+(e.g. FPI) doesn't prevent the others from being used.
+
+### Picking a Side
+
+When ratings and win probability agree on a side, that's a clean signal.
+When they disagree, the pick defers to CFBD's own pregame win-probability
+model rather than the ratings average — it's a purpose-built combined
+estimate, whereas the ratings signal here is just an unweighted average of
+four raw rating systems. Ratings only decide the pick when win probability
+has no data for that game; home-field advantage is the last-resort default
+when neither signal has anything.
+
 ### Confidence Scoring Algorithm
 
-- **HIGH Confidence (6+ points)**: large rating differences (>20 points),
-  strong win-probability edges (>30%), and/or ratings agreeing with the
-  market spread
-- **MEDIUM Confidence (3-5 points)**: moderate rating differences
-  (10-20 points), moderate win-probability edges (15-30%)
-- **LOW Confidence (0-2 points)**: small rating differences, slight
-  win-probability edges, or limited/conflicting data
+Confidence is scored only from signals that agree with the side actually
+picked — a signal pointing the other way contributes nothing (and is called
+out as a caveat in the reasoning) rather than inflating confidence in a pick
+it argues against.
+
+- **HIGH Confidence (6+ points)**: large rating edge (>1.2 SD across the
+  standardized rating systems), strong win-probability edge (>30%), and/or
+  the betting spread agreeing with the pick
+- **MEDIUM Confidence (3-5 points)**: moderate rating edge (0.6-1.2 SD),
+  moderate win-probability edge (15-30%)
+- **LOW Confidence (0-2 points)**: small/no rating or win-probability edge
+  in the picked side's favor, or the available signals mostly disagreeing
+  with each other
 
 ### Output Format
 
@@ -114,7 +136,7 @@ Florida State @ Clemson
   Pick: Clemson (HIGH confidence)
   Spread: -10.5
   Win Probability: Clemson 75.3% | Florida State 24.7%
-  Reasoning: Large rating difference (15.2); Strong win probability edge (50.6%); Ratings align with spread
+  Reasoning: Large rating edge (1.8 SD); Strong win probability edge (50.6%); Spread aligns with the pick
 ```
 
 ## Programmatic Usage
@@ -160,11 +182,22 @@ python weekly_picks_cfbd.py --year 2024 --week 15 --conference SEC
 python weekly_picks_cfbd.py --year 2024 --week 1 --season-type postseason
 ```
 
+Note: examples using a completed past season (like `2024` once that season
+has ended) will print a hindsight-bias warning — see Limitations below.
+
 ## Limitations
 
 - **API Key Required**: Most endpoints require a valid CFBD API key
 - **Data Availability**: Some rating systems may not be available for all
   teams/weeks (SRS and FPI in particular start partway through a season)
+- **Live use only, not a backtest**: FPI, SP+, and SRS have no point-in-time
+  lookup in the CFBD API — only ELO accepts a `week` parameter. Requesting a
+  past week always returns those three systems' *current* season-to-date
+  values, not what was knowable entering that week. This tool is intended
+  for live, current-week picks; picks generated for a completed past season
+  will look more confident than they should, since three of the four rating
+  inputs are effectively hindsight. The script prints a warning when this
+  applies.
 - **No Guarantees**: This is an analytical aid, not a promise of outcomes —
   use it alongside `run_weekly_predictions.py`/`run_props.py` and your own
   judgment, not as a substitute for either
@@ -180,6 +213,7 @@ export CFBD_API_KEY='your-actual-key'
 combination is valid and that games exist for the specified conference or
 season type.
 
-**`Warning: Could not fetch all ratings`** — Normal when a rating source
-(e.g., FPI or SRS) isn't published yet for that week; picks are still
-generated from whatever data is available.
+**`Warning: Could not fetch <source> ratings`** — Normal when a specific
+rating source (ELO, FPI, SP+, or SRS) isn't published yet for that week or
+is temporarily unavailable; each source is fetched independently, so picks
+are still generated from whichever of the other three are available.
