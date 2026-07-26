@@ -76,10 +76,14 @@ from the Actions tab with custom `year`/`week`/`train_year` parameters.
 
 **Setup:**
 1. Add your key as a repository secret named `CFB_API_KEY` (Settings →
-   Secrets and variables → Actions → New repository secret)
-2. The workflow runs automatically from then on; or trigger it manually from
-   the Actions tab, optionally supplying a one-off `api_key` input instead of
-   using the secret (the input is never stored or logged)
+   Secrets and variables → Actions → New repository secret) — this is the
+   only way to supply the key without exposing it
+2. The workflow then runs automatically every week. It can also be
+   triggered manually from the Actions tab; the manual `api_key` input
+   field there is **not** a secret — its value is retained as plain
+   workflow-run input data, visible to anyone who can view this
+   repository's Actions tab (this repo is public). Only use that field
+   with a throwaway key you're fine exposing, never your real one.
 
 Full details on triggers, inputs, outputs, and artifact retention are in
 [.github/WORKFLOW_DOCUMENTATION.md](.github/WORKFLOW_DOCUMENTATION.md) and
