@@ -26,6 +26,12 @@ Requires an API key from https://collegefootballdata.com/key, supplied via
 --api-key, the CFBD_API_KEY environment variable, or (for consistency with
 the rest of this repo) the CFB_API_KEY environment variable.
 
+Intended for live, current-week use. FPI/SP+/SRS ratings reflect current
+season-to-date values (CFBD does not expose point-in-time snapshots for
+those three systems), so generating picks for a past, completed season
+will use hindsight ratings rather than what was knowable at the time --
+see generate_weekly_picks()'s warning for a past-season year.
+
 CLI usage:
     python weekly_picks_cfbd.py --year 2024 --week 10
     python weekly_picks_cfbd.py --year 2024 --week 10 --conference SEC
@@ -39,6 +45,7 @@ Programmatic usage:
     generator.print_picks(picks)
 """
 
+import datetime
 import os
 import sys
 from typing import Dict, List, Optional, Tuple
@@ -136,28 +143,45 @@ class WeeklyPicksGenerator:
             return {}
 
     def get_team_ratings(self, year: int, week: Optional[int] = None) -> Dict:
-        """Fetch ELO, FPI, SP+, and SRS ratings for analysis."""
+        """Fetch ELO, FPI, SP+, and SRS ratings for analysis.
+
+        Each rating source is fetched in its own try/except: if one
+        endpoint is temporarily unavailable, the others are still
+        returned rather than the whole call aborting partway through.
+
+        Note: only ELO accepts a `week` parameter in the CFBD API. FPI,
+        SP+, and SRS are always current season-to-date values -- see
+        generate_weekly_picks()'s past-season warning.
+        """
         ratings = {"elo": {}, "fpi": {}, "sp": {}, "srs": {}}
 
         try:
             for rating in self.ratings_api.get_elo(year=year, week=week):
                 if rating.team:
                     ratings["elo"][rating.team] = rating.elo
+        except ApiException as e:
+            print(f"Warning: Could not fetch ELO ratings: {e}")
 
+        try:
             for rating in self.ratings_api.get_fpi(year=year):
                 if rating.team:
                     ratings["fpi"][rating.team] = rating.fpi
+        except ApiException as e:
+            print(f"Warning: Could not fetch FPI ratings: {e}")
 
+        try:
             for rating in self.ratings_api.get_sp(year=year):
                 if rating.team:
                     ratings["sp"][rating.team] = rating.rating
+        except ApiException as e:
+            print(f"Warning: Could not fetch SP+ ratings: {e}")
 
+        try:
             for rating in self.ratings_api.get_srs(year=year):
                 if rating.team:
                     ratings["srs"][rating.team] = rating.rating
-
         except ApiException as e:
-            print(f"Warning: Could not fetch all ratings: {e}")
+            print(f"Warning: Could not fetch SRS ratings: {e}")
 
         return ratings
 
@@ -221,48 +245,70 @@ class WeeklyPicksGenerator:
             return {}
 
     def calculate_pick_confidence(self,
+                                   picked_home: bool,
                                    ratings_diff: float,
                                    win_prob_diff: float,
                                    spread: Optional[float]) -> Tuple[str, str]:
         """
-        Calculate pick confidence based on available data.
+        Calculate pick confidence based on how strongly each available
+        signal agrees with the side that was actually picked.
+
+        A signal that disagrees with the pick contributes no confidence
+        points -- it shouldn't inflate confidence in the side it argues
+        against -- and is instead surfaced as a caveat in the reasoning.
 
         Returns:
             Tuple of (confidence_level, reasoning)
         """
         confidence_score = 0
         reasons = []
+        caveats = []
+
+        # Reorient each signal relative to the picked side: positive means
+        # the signal supports the pick, regardless of which team it favors.
+        ratings_support = ratings_diff if picked_home else -ratings_diff
+        win_prob_support = win_prob_diff if picked_home else -win_prob_diff
 
         # Rating difference contributes to confidence.
         # ratings_diff is an average of per-system z-scores (see
         # _normalize_ratings), so it typically ranges roughly -3..3 rather
         # than the raw ELO-dominated scale this was originally tuned for.
-        if abs(ratings_diff) > 1.2:
+        if ratings_support > 1.2:
             confidence_score += 3
-            reasons.append(f"Large rating edge ({ratings_diff:+.2f} SD)")
-        elif abs(ratings_diff) > 0.6:
+            reasons.append(f"Large rating edge ({abs(ratings_diff):.2f} SD)")
+        elif ratings_support > 0.6:
             confidence_score += 2
-            reasons.append(f"Moderate rating edge ({ratings_diff:+.2f} SD)")
-        elif abs(ratings_diff) > 0.25:
+            reasons.append(f"Moderate rating edge ({abs(ratings_diff):.2f} SD)")
+        elif ratings_support > 0.25:
             confidence_score += 1
-            reasons.append(f"Small rating edge ({ratings_diff:+.2f} SD)")
+            reasons.append(f"Small rating edge ({abs(ratings_diff):.2f} SD)")
+        elif ratings_support < -0.25:
+            caveats.append(f"ratings favor the other side ({abs(ratings_diff):.2f} SD)")
 
         # Win probability difference
-        if abs(win_prob_diff) > 30:
+        if win_prob_support > 30:
             confidence_score += 3
-            reasons.append(f"Strong win probability edge ({win_prob_diff:.1f}%)")
-        elif abs(win_prob_diff) > 15:
+            reasons.append(f"Strong win probability edge ({abs(win_prob_diff):.1f}%)")
+        elif win_prob_support > 15:
             confidence_score += 2
-            reasons.append(f"Moderate win probability edge ({win_prob_diff:.1f}%)")
-        elif abs(win_prob_diff) > 5:
+            reasons.append(f"Moderate win probability edge ({abs(win_prob_diff):.1f}%)")
+        elif win_prob_support > 5:
             confidence_score += 1
-            reasons.append(f"Slight win probability edge ({win_prob_diff:.1f}%)")
+            reasons.append(f"Slight win probability edge ({abs(win_prob_diff):.1f}%)")
+        elif win_prob_support < -5:
+            caveats.append(f"win probability favors the other side ({abs(win_prob_diff):.1f}%)")
 
-        # Spread agreement
-        if spread is not None:
-            if (ratings_diff > 0 and spread < 0) or (ratings_diff < 0 and spread > 0):
+        # Spread agreement: by convention a negative spread favors the
+        # home team. Checked against the picked side, not against
+        # ratings_diff specifically -- the pick may not have followed
+        # ratings if win probability disagreed with it.
+        if spread is not None and spread != 0:
+            spread_favors_pick = (spread < 0) == picked_home
+            if spread_favors_pick:
                 confidence_score += 2
-                reasons.append("Ratings align with spread")
+                reasons.append("Spread aligns with the pick")
+            else:
+                caveats.append("spread favors the other side")
 
         if confidence_score >= 6:
             confidence = "HIGH"
@@ -272,6 +318,8 @@ class WeeklyPicksGenerator:
             confidence = "LOW"
 
         reasoning = "; ".join(reasons) if reasons else "Limited data available"
+        if caveats:
+            reasoning += " (but " + "; ".join(caveats) + ")"
         return confidence, reasoning
 
     def make_pick(self, game, ratings: Dict, win_probs: Dict,
@@ -325,23 +373,22 @@ class WeeklyPicksGenerator:
         # model, whereas ratings_diff is just an unweighted average of
         # four raw rating systems. Ratings only choose the side when win
         # probability has no data for this game (win_prob_diff == 0).
-        # Either way, both signals still feed calculate_pick_confidence
-        # below, so a ratings/win-probability conflict is reflected as
-        # lower confidence rather than silently hidden.
         if win_prob_diff != 0:
-            pick_data["pick"] = game.home_team if win_prob_diff > 0 else game.away_team
+            picked_home = win_prob_diff > 0
         elif ratings_diff != 0:
-            pick_data["pick"] = game.home_team if ratings_diff > 0 else game.away_team
+            picked_home = ratings_diff > 0
         else:
             # No signal at all; go with home-field advantage. Use a small
             # nudge (well under the "small edge" threshold) rather than a
             # full z-score's worth of ratings_diff, since this path means
             # we have no real signal and shouldn't be scored as if we did.
-            pick_data["pick"] = game.home_team
+            picked_home = True
             ratings_diff = 0.1
 
+        pick_data["pick"] = game.home_team if picked_home else game.away_team
+
         confidence, reasoning = self.calculate_pick_confidence(
-            ratings_diff, win_prob_diff, pick_data["spread"]
+            picked_home, ratings_diff, win_prob_diff, pick_data["spread"]
         )
         pick_data["confidence"] = confidence
         pick_data["reasoning"] = reasoning
@@ -355,6 +402,21 @@ class WeeklyPicksGenerator:
         """Generate picks for every game in a week."""
         print(f"Generating picks for {year} Week {week} ({season_type})...")
         print("=" * 80)
+
+        current_year = datetime.datetime.now(datetime.timezone.utc).year
+        if year < current_year:
+            print(
+                f"Warning: {year} is a past season. FPI, SP+, and SRS "
+                "ratings are only available from CFBD as current "
+                "season-to-date values, not point-in-time snapshots for a "
+                "specific past week -- so for a completed season these "
+                "three rating systems reflect full-season hindsight rather "
+                f"than what was knowable entering week {week}. Treat "
+                "picks generated for past seasons as illustrative only, "
+                "not a faithful backtest. (ELO is the exception: it is "
+                "fetched with a week parameter and does reflect that "
+                "week's rating.)"
+            )
 
         print("Fetching games...")
         games = self.get_weekly_games(year, week, season_type, conference)
