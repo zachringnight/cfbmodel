@@ -15,6 +15,7 @@ requirements = [
     "scikit-learn>=1.3.0",
     "urllib3>=2.0.0",
     "pytest>=7.4.0",
+    "cfbd>=5.0.0",
 ]
 
 setup(
@@ -25,7 +26,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/zachringnight/cfbmodel",
-    py_modules=['__init__', 'main', 'model', 'preprocessor', 'data_fetcher', 'config'],
+    py_modules=['__init__', 'main', 'model', 'preprocessor', 'data_fetcher', 'config', 'weekly_picks_cfbd'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
