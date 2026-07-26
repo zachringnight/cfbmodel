@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       api_key:
-        description: 'Optional: CFB API key to use for this run (will not be stored in repository).'
+        description: 'NOT a secret -- stored as plain workflow-run input data, visible to anyone who can view this (public) repo''s Actions tab. Prefer the CFB_API_KEY repository secret; only use this field with a disposable key.'
         required: false
         default: ''
       year:
