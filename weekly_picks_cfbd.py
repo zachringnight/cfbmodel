@@ -354,20 +354,24 @@ class WeeklyPicksGenerator:
         if game.id in betting_data:
             pick_data["spread"] = betting_data[game.id].get("spread")
 
-        # Average each team's rating across all available systems
-        home_ratings = []
-        away_ratings = []
+        # Average each system's home-vs-away difference, but only across
+        # systems where BOTH teams have a value. Building home/away
+        # averages independently could compare e.g. a 3-system home
+        # average against a 1-system away average purely because a system
+        # (SRS/FPI often start partway through a season -- see the guide's
+        # Limitations) hadn't reported for one team yet, creating or
+        # reversing an edge from coverage alone rather than team strength.
+        # This is mathematically identical to averaging home/away
+        # independently and subtracting whenever coverage is symmetric,
+        # and only differs (correctly) when it isn't.
+        shared_diffs = []
         for rating_type in ("elo", "fpi", "sp", "srs"):
-            if game.home_team in ratings[rating_type]:
-                home_ratings.append(ratings[rating_type][game.home_team])
-            if game.away_team in ratings[rating_type]:
-                away_ratings.append(ratings[rating_type][game.away_team])
+            home_val = ratings[rating_type].get(game.home_team)
+            away_val = ratings[rating_type].get(game.away_team)
+            if home_val is not None and away_val is not None:
+                shared_diffs.append(home_val - away_val)
 
-        ratings_diff = 0
-        if home_ratings and away_ratings:
-            avg_home = sum(home_ratings) / len(home_ratings)
-            avg_away = sum(away_ratings) / len(away_ratings)
-            ratings_diff = avg_home - avg_away
+        ratings_diff = sum(shared_diffs) / len(shared_diffs) if shared_diffs else 0
 
         win_prob_diff = 0
         if game.id in win_probs:
