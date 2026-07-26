@@ -319,13 +319,21 @@ class WeeklyPicksGenerator:
             win_prob_diff = home_prob - away_prob
             pick_data["win_probability"] = home_prob
 
-        # Make the pick
-        if ratings_diff > 0 or win_prob_diff > 0:
-            pick_data["pick"] = game.home_team
-        elif ratings_diff < 0 or win_prob_diff < 0:
-            pick_data["pick"] = game.away_team
+        # Make the pick. When ratings and win probability agree, that's a
+        # clean signal either way. When they conflict, defer to win
+        # probability: it's CFBD's own purpose-built combined pregame
+        # model, whereas ratings_diff is just an unweighted average of
+        # four raw rating systems. Ratings only choose the side when win
+        # probability has no data for this game (win_prob_diff == 0).
+        # Either way, both signals still feed calculate_pick_confidence
+        # below, so a ratings/win-probability conflict is reflected as
+        # lower confidence rather than silently hidden.
+        if win_prob_diff != 0:
+            pick_data["pick"] = game.home_team if win_prob_diff > 0 else game.away_team
+        elif ratings_diff != 0:
+            pick_data["pick"] = game.home_team if ratings_diff > 0 else game.away_team
         else:
-            # No clear edge; go with home-field advantage. Use a small
+            # No signal at all; go with home-field advantage. Use a small
             # nudge (well under the "small edge" threshold) rather than a
             # full z-score's worth of ratings_diff, since this path means
             # we have no real signal and shouldn't be scored as if we did.
