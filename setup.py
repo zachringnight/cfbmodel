@@ -26,7 +26,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/zachringnight/cfbmodel",
-    py_modules=['__init__', 'main', 'model', 'preprocessor', 'data_fetcher', 'config'],
+    py_modules=['__init__', 'main', 'model', 'preprocessor', 'data_fetcher', 'config', 'weekly_picks_cfbd'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
