@@ -89,7 +89,14 @@ class WeeklyPicksGenerator:
     def get_weekly_games(self, year: int, week: int,
                           season_type: str = "regular",
                           conference: Optional[str] = None) -> List:
-        """Fetch games for a specific week."""
+        """Fetch games for a specific week.
+
+        Authentication failures (401/403) are re-raised rather than
+        swallowed into an empty list: an invalid/expired API key is a
+        different problem than "no games this week," and main()'s own
+        ApiException handler already reports it correctly -- but only if
+        it actually reaches that handler.
+        """
         try:
             return self.games_api.get_games(
                 year=year,
@@ -98,6 +105,8 @@ class WeeklyPicksGenerator:
                 conference=conference,
             )
         except ApiException as e:
+            if e.status in (401, 403):
+                raise
             print(f"Error fetching games: {e}")
             return []
 
