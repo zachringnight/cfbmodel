@@ -157,7 +157,13 @@ functionality, data preprocessing, props/profit model behavior, and the
 weekly-predictions/workflow helper scripts.
 
 Continuous integration ([.github/workflows/ci.yml](.github/workflows/ci.yml))
-runs this suite on every push and pull request across Python 3.9–3.12.
+runs on every push and pull request across Python 3.9–3.12, but only
+`test_cfb_model.py` is a required, blocking step there. `test_weekly_predictions.py`
+and `test_functionality.py` are additionally run (Python 3.11 only), but their
+failures are non-blocking (`|| echo`, since they may need a live API key) —
+and `test_props_model.py`, `test_workflow_api_key.py`, and
+`test_workflow_outputs.py` aren't run in CI at all yet. Run
+`python -m pytest -v` locally for the full suite.
 
 ## Configuration
 
